@@ -11,14 +11,17 @@ def create_user_function(request_data):
         conn = sqlite3.connect('incalendar.db')
         c = conn.cursor()
         
-        c.execute("SELECT * FROM users WHERE phone_number = ?", (phone_number))
+        # Corrected tuple format for the query
+        c.execute("SELECT * FROM users WHERE phone_number = ?", (phone_number,))
         existing_user = c.fetchone()
         
         if existing_user:
+            # Corrected tuple format for the update statement
             c.execute("UPDATE users SET name = ? WHERE phone_number = ?", (name, phone_number))
             conn.commit()
             return json.dumps({'message': 'User info updated', 'name': name, 'phone_number': phone_number})
         else:
+            # Corrected tuple format for the insert statement
             c.execute("INSERT INTO users (name, phone_number) VALUES (?, ?)", (name, phone_number))
             conn.commit()
             
