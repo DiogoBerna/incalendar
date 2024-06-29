@@ -1,11 +1,7 @@
 import os
 import json
-import rollbar.contrib.flask
 
 from flask_cors import CORS
-from dotenv import load_dotenv
-import rollbar
-import rollbar.contrib.flask
 from flask_session import Session
 from flask import Flask, jsonify, request, got_request_exception
 
