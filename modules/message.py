@@ -13,4 +13,10 @@ def message_function(request_data):
   print("============")
 
   user_data = json.loads(user)
-  return f"Hello, {user_data['name']}. How can I help you today?"
+
+
+  # OPENAI CODE GOES HERE!!!
+
+
+  message = f"Hello, {user_data['name']}. How can I help you today?"
+  return message

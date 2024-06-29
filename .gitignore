@@ -1,0 +1,4 @@
+session_data/
+modules/calendar/credentials.json
+modules/__pycache__/
+*.pyc
