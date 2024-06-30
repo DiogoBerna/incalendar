@@ -1,5 +1,6 @@
 import os.path
 import sqlite3
+from datetime import datetime
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -36,6 +37,9 @@ def get_tokens_from_db(phone_number):
     return result
 
 def get_calendar_service(phone_number, auth_code=None):
+    print('---------------------------------')
+    print(phone_number)
+    print(auth_code)
     tokens = get_tokens_from_db(phone_number)
     if tokens:
         token, refresh_token = tokens
@@ -61,22 +65,24 @@ def get_calendar_service(phone_number, auth_code=None):
     print("Calendar service created successfully")
     return service
 
-def create_event(phone_number):
+def create_event(phone_number, date_time, duration, title, attendees=[]):
     service = get_calendar_service(phone_number)
     print("Create an event")
+    print("Title: ", title)
+    print("Date Time: ", date_time)
+    print("Duration: ", duration)
+    print("Attendees: ", attendees)
     a = "Event created by InCalendar Automation"
 
-    date = datetime.now().date()
-    today = datetime(date.year, date.month, date.day, 10) + timedelta(days=0)
-    start = today.isoformat()
-    end = (today + timedelta(hours=1)).isoformat()
+    start = date_time
+    end = (datetime.fromisoformat(date_time) + timedelta(minutes=duration)).isoformat()
 
     event_result = service.events().insert(calendarId='primary',
                                            body={
-                                               "summary": 'AAKASH --- CALENDAR AUTOMATION',
-                                               "description": a,
-                                               "start": {"dateTime": start, "timeZone": 'Asia/Kolkata'},
-                                               "end": {"dateTime": end, "timeZone": 'Asia/Kolkata'},
+                                               "summary": title,
+                                               "description": "Event created by InCalendar Automation",
+                                               "start": {"dateTime": start, "timeZone": 'America/Los_Angeles'},
+                                               "end": {"dateTime": end, "timeZone": 'America/Los_Angeles'},
                                            }
                                            ).execute()
 
@@ -85,3 +91,22 @@ def create_event(phone_number):
     print("Summary: ", event_result['summary'])
     print("Starts At: ", event_result['start']['dateTime'])
     print("Ends At: ", event_result['end']['dateTime'])
+
+def list_event(phone_number, start_date, end_date):
+    print("List 10 upcoming events")
+    service = get_calendar_service(phone_number)
+
+    now = datetime.utcnow().isoformat() + 'Z'
+    print('Getting List of 10 events')
+    events_result = service.events().list(calendarId='primary', timeMin=now,
+                                          maxResults=10, singleEvents=True,
+                                          orderBy='startTime').execute()
+    events = events_result.get('items', [])
+
+    if not events:
+        print('No upcoming events found.')
+        return "No upcoming events found."
+    for event in events:
+        start = event['start'].get('dateTime', event['start'].get('date'))
+        print(start, event['summary'])
+        return events

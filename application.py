@@ -57,7 +57,7 @@ def start_message():
 def start_authorize():
   code = request.args.get('code')
   state = request.args.get('state')
-  get_calendar_service(code, state)
+  get_calendar_service(state, code)
   return "Linked calendar with access. You can close this tab and return to the InCalendar conversation on Whatsapp", 200
 
 
