@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from modules.create_user import create_user_function
 from modules.is_calendar_connected import is_calendar_connected
 from modules.calendar.call_setup import generate_auth_url, create_event, list_event
+from modules.create_meeting import create_meeting_function
 
 load_dotenv()
 
@@ -122,14 +123,36 @@ def create_new_event(arguments, phone_number):
     # Logic to create a new event
     return f"New event created on {date_time} for {duration} minutes with attendees {attendees}"
 
-def record_meeting(arguments, phone_number):
+def record_meeting(arguments, message_from):
     print("record", arguments)
     if arguments.get("event_id"):
-        event_id = arguments.get("event_id")
+        meeting_url = arguments.get("meeting_url")
     else:
         event = find_event(arguments)
-        
-       
+        meeting_url = event.get("meeting_url")
+
+    json_meeting = {
+        "meeting_url": meeting_url,
+        "bot_name": "InCalendar Bot",
+        "join_at": datetime.now().isoformat(),
+        "automatic_leave": {"everyone_left_timeout": 5}
+    }
+    recall_api_key = os.getenv("RECALL_API_KEY")
+    # #request = requests.post(
+    #     "https://api.recall.ai/api/v1/bot/",
+    #     json=json_meeting, 
+    #     headers={"Authorization": f"Token {recall_api_key}"}
+    # )
+    #recall_data = request.json()
+    #recall_id = recall_data.get("id")
+    recall_id = "1234"
+    arguments = {
+        "BotId": recall_id,
+        "UserId": message_from
+    }
+    result = create_meeting_function(arguments)
+    print(result)
+    print("added to db")
     # Logic to record meeting details
     return f"System successfully scheduled recording for the event"
 
