@@ -36,6 +36,20 @@ def setup_database():
     ''')
     conn.commit()
 
+    # New table creation
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS meetings (
+            id INTEGER PRIMARY KEY,
+            bot_id TEXT NOT NULL,
+            user_id INTEGER,
+            bot_status TEXT,
+            transcription TEXT,
+            transcription_status TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    ''')
+    conn.commit()
+
     conn.close()
 
 if __name__ == "__main__":

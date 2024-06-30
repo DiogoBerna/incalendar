@@ -12,6 +12,7 @@ from modules.get_user import get_user_function
 from modules.create_user import create_user_function
 from modules.calendar.call_setup import get_calendar_service
 from modules.disconnect_calendar import disconnect_calendar_function
+from modules.get_meeting import get_meeting_function
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={r"*": {"origins": "*"}})
@@ -60,6 +61,13 @@ def start_authorize():
   get_calendar_service(state, code)
   return "Linked calendar with access. You can close this tab and return to the InCalendar conversation on Whatsapp", 200
 
+@app.route("/call-bot", methods=["POST"])
+def call_bot_event():
+  print(request.data)
+  data = request.get_json()
+  bot_id = data.get("data", {}).get("bot_id")
+  result = get_meeting_function(bot_id)
+  return result
 
 if __name__ == "__main__":
   port = int(os.environ.get("PORT", 5000))
