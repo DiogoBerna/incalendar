@@ -1,9 +1,10 @@
 import os
 import json
 from openai import OpenAI
+from datetime import datetime
 from dotenv import load_dotenv
 from modules.create_user import create_user_function
-from datetime import datetime
+from modules.calendar.call_setup import get_calendar_service, generate_auth_url, create_event
 
 load_dotenv()
 
@@ -18,6 +19,9 @@ for var_name in env_vars:
     globals()[var_name] = value
 
 def message_function(request_data):
+  if request_data.get('MessageType') is not 'text':
+    return "Only text messages are supported at the moment."
+  
   message_from = request_data.get('From')
   message_body = request_data.get('Body')
 
@@ -33,7 +37,7 @@ def message_function(request_data):
 
 
   client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key=openai_key,
   )
 
   chat_completion = client.chat.completions.create(
@@ -92,6 +96,7 @@ def get_events(arguments):
 
 def create_new_event(arguments):
     print("create", arguments)
+    # create_event(user_data['phone_number'])
     date_time = arguments.get("date_time")
     duration = arguments.get("duration", 30)  # Default to 30 minutes if not specified
     attendees = arguments.get("attendees", [])

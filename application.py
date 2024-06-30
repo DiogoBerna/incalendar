@@ -11,6 +11,7 @@ from modules.message import message_function
 from modules.get_user import get_user_function
 from modules.create_user import create_user_function
 from modules.calendar.call_setup import get_calendar_service
+from modules.disconnect_calendar import disconnect_calendar_function
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={r"*": {"origins": "*"}})
@@ -32,6 +33,12 @@ def start_get_user():
     return json.dumps({'error': 'Phone Number is required.'})
   
   result = get_user_function(phone_number)
+  return result
+
+@app.route("/disconnect_calendar", methods=["POST"])
+def start_disconnect_calendar():
+  request_data = request.get_json()
+  result = disconnect_calendar_function(request_data)
   return result
 
 @app.route("/create_user", methods=["POST"])
