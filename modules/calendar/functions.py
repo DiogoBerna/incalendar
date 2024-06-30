@@ -1,6 +1,6 @@
 import googleapiclient
 from datetime import datetime, timedelta
-from cal_setup import get_calendar_service
+from modules.calendar.call_setup import get_calendar_service
 
 
 def main():

@@ -10,6 +10,7 @@ from modules.status import get_status
 from modules.message import message_function
 from modules.get_user import get_user_function
 from modules.create_user import create_user_function
+from modules.calendar.call_setup import get_calendar_service
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={r"*": {"origins": "*"}})
@@ -44,6 +45,13 @@ def start_message():
   request_data = request.form
   result = message_function(request_data)
   return result, 200, {'Content-Type': 'text/plain'}
+
+@app.route("/authorize", methods=["GET"])
+def start_authorize():
+  code = request.args.get('code')
+  state = request.args.get('state')
+  get_calendar_service(code, state)
+  return "Linked calendar with access. You can close this tab and return to the InCalendar conversation on Whatsapp", 200
 
 
 if __name__ == "__main__":

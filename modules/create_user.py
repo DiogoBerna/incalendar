@@ -12,6 +12,7 @@ def create_user_function(request_data):
         c = conn.cursor()
         
         # Corrected tuple format for the query
+        phone_number = phone_number.replace("whatsapp:", "")
         c.execute("SELECT * FROM users WHERE phone_number = ?", (phone_number,))
         existing_user = c.fetchone()
         
