@@ -63,11 +63,16 @@ def start_authorize():
 
 @app.route("/call-bot", methods=["POST"])
 def call_bot_event():
-  print(request.data)
   data = request.get_json()
+  print(data)
   bot_id = data.get("data", {}).get("bot_id")
-  result = get_meeting_function(bot_id)
-  return result
+  status = data.get("data").get('status').get('code')
+  if status == 'done':
+    print(bot_id)
+    result = get_meeting_function(bot_id)
+    return result
+  else:
+    return "Bot is still processing the transcription"
 
 if __name__ == "__main__":
   port = int(os.environ.get("PORT", 5000))

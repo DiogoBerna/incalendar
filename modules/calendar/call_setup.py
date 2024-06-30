@@ -37,9 +37,6 @@ def get_tokens_from_db(phone_number):
     return result
 
 def get_calendar_service(phone_number, auth_code=None):
-    print('---------------------------------')
-    print(phone_number)
-    print(auth_code)
     tokens = get_tokens_from_db(phone_number)
     if tokens:
         token, refresh_token = tokens
@@ -83,7 +80,17 @@ def create_event(phone_number, date_time, duration, title, attendees=[]):
                                                "description": "Event created by InCalendar Automation",
                                                "start": {"dateTime": start, "timeZone": 'America/Los_Angeles'},
                                                "end": {"dateTime": end, "timeZone": 'America/Los_Angeles'},
-                                           }
+                                               "attendees": [{"email": attendee} for attendee in attendees],
+                                               "conferenceData": {
+                                                   "createRequest": {
+                                                       "requestId": "12345",
+                                                       "conferenceSolutionKey": {
+                                                           "type": "hangoutsMeet"
+                                                       }
+                                                   }
+                                               }
+                                           },
+                                           conferenceDataVersion=1
                                            ).execute()
 
     print("Calendar Automation has created an event")
@@ -91,9 +98,10 @@ def create_event(phone_number, date_time, duration, title, attendees=[]):
     print("Summary: ", event_result['summary'])
     print("Starts At: ", event_result['start']['dateTime'])
     print("Ends At: ", event_result['end']['dateTime'])
+    print("Google Meet Link: ", event_result['hangoutLink'])
 
 def list_event(phone_number, start_date, end_date):
-    print("List 10 upcoming events")
+    print("List 10 upcoming events", phone_number)
     service = get_calendar_service(phone_number)
 
     now = datetime.utcnow().isoformat() + 'Z'

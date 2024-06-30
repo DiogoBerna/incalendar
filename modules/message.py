@@ -1,8 +1,10 @@
 import os
 import json
+import requests
 from openai import OpenAI
 from datetime import datetime
 from dotenv import load_dotenv
+from modules.get_user import get_user_function
 from modules.create_user import create_user_function
 from modules.is_calendar_connected import is_calendar_connected
 from modules.calendar.call_setup import generate_auth_url, create_event, list_event
@@ -105,7 +107,23 @@ def get_events(arguments, phone_number):
 
     events = list_event(phone_number, start_date, end_date)
     # Logic to get events within the date range
-    return f"Events from {start_date} to {end_date}: {events}"
+    return f"{events}"
+
+def get_events_array(arguments, phone_number):
+    print("get", arguments)
+    is_connected = is_calendar_connected(phone_number)
+
+    if not is_connected:
+        message = "Before getting events, please connect your calendar. Then, ask me to get events again: "
+        url = generate_auth_url(phone_number)
+        return f"{message} {url}"
+    
+    start_date = arguments.get("start_date")
+    end_date = arguments.get("end_date")
+
+    events = list_event(phone_number, start_date, end_date)
+    # Logic to get events within the date range
+    return events
 
 def create_new_event(arguments, phone_number):
     is_connected = is_calendar_connected(phone_number)
@@ -123,13 +141,21 @@ def create_new_event(arguments, phone_number):
     # Logic to create a new event
     return f"New event created on {date_time} for {duration} minutes with attendees {attendees}"
 
-def record_meeting(arguments, message_from):
+def record_meeting(arguments, phone_number):
+    is_connected = is_calendar_connected(phone_number)
+
+    if not is_connected:
+        message = "Before creating an event, please connect your calendar. Then, ask me to create an event again: "
+        url = generate_auth_url(phone_number)
+        return f"{message} {url}"
+    
     print("record", arguments)
     if arguments.get("event_id"):
         meeting_url = arguments.get("meeting_url")
     else:
-        event = find_event(arguments)
-        meeting_url = event.get("meeting_url")
+        events = get_events_array(arguments, phone_number)
+        first_event = events[0] if events else None
+        meeting_url = first_event.get("hangoutLink") if first_event else None
 
     json_meeting = {
         "meeting_url": meeting_url,
@@ -138,17 +164,24 @@ def record_meeting(arguments, message_from):
         "automatic_leave": {"everyone_left_timeout": 5}
     }
     recall_api_key = os.getenv("RECALL_API_KEY")
-    # #request = requests.post(
-    #     "https://api.recall.ai/api/v1/bot/",
-    #     json=json_meeting, 
-    #     headers={"Authorization": f"Token {recall_api_key}"}
-    # )
-    #recall_data = request.json()
-    #recall_id = recall_data.get("id")
-    recall_id = "1234"
+    
+    request = requests.post(
+        "https://api.recall.ai/api/v1/bot/",
+        json=json_meeting, 
+        headers={"Authorization": f"Token {recall_api_key}"}
+    )
+    recall_data = request.json()
+    print(recall_data)
+    recall_id = recall_data.get("id")
+    print("recall_id", recall_id)
+
+    user = get_user_function(phone_number)
+    user_data = json.loads(user)
+    user_id = user_data.get("id")
+    # recall_id = "1234"
     arguments = {
         "BotId": recall_id,
-        "UserId": message_from
+        "UserId": user_id
     }
     result = create_meeting_function(arguments)
     print(result)
@@ -216,8 +249,8 @@ tools = [
                 "type": "object",
                 "properties": {
                     "event_id": {"type": "string", "description": "ID of the event to record"},
-                    "search_start_date": {"type": "string", "description": "If no ID is provided, search for events starting from this date"},
-                    "search_end_date": {"type": "string", "description": "If no ID is provided, search for events ending on this date"}
+                    "start_date": {"type": "string", "description": "If no ID is provided, search for events starting from this date"},
+                    "end_date": {"type": "string", "description": "If no ID is provided, search for events ending on this date"}
                 }
             },
         }
